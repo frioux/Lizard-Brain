@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+
+use WebService::Pushover;
+
+my $p = WebService::Pushover->new(
+   user_token => $ENV{PUSHOVER_USER},
+   api_token  => $ENV{PUSHOVER_API},
+);
+
+# TODO: check for failures
+$p->message(message => join ' ', @ARGV);

@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+chomp(my $body = do { local $/; <STDIN> });
+
+die "$body does not start with echo\n"
+  unless $body =~ m/^echo (.*)$/;
+
+print "$1\n";

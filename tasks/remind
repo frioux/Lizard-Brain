@@ -1,0 +1,17 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+chomp(my $body = do { local $/; <STDIN> });
+
+die "$body does not start with remind me to\n"
+  unless $body =~ m/^remind me to (.+) at (.+)$/;
+
+my $message = $1;
+my $timespec = $2;
+
+open(my $ph, '|-', 'at', $timespec);
+
+# TODO: add some kind of response for the user
+print $ph "./bin/action-pushover $message";

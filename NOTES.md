@@ -64,3 +64,52 @@ Flow:
 Impulses are just programs writing to the Lizard Brain impulse pipe.
 Tasks are small programs that exit non-zero if they recognize their
 input.  Maybe depending on their output LB can keep running tasks?
+
+# Example Flow
+
+SMS Impulse writes the following to `./pipes/lizard-brain`:
+
+```
+From: SMS/my-number
+Reaction: SMS/my-number
+
+remind me to get gas at 5pm
+```
+
+Lizard-Brain (which is really just a ghetto router) writes the above to each
+task until one exits 0 or 1: `./tasks/remind`:
+
+```
+From: SMS/my-number
+Reaction: SMS/my-number
+
+remind me to get gas at 5pm
+```
+
+And the response is:
+
+```
+Session: SMS/my-number:truncate(md5sum($reminder),4)
+Reaction: SMS/my-number
+
+Ok, I'll remind you to get gas today at 5pm [truncate(md5sum($reminder),4)]
+```
+
+Lizard-Brain notes that there is a Session and thus will prioritize the remind
+action when getting messages from SMS/my-number.
+
+Next, presumably today at 5, the remind task will write to `./pipes/SMS` to
+(hopefully) resolve this session:
+
+```
+Destination: SMS/my-number # can be overridden by using the `via` keyword
+
+get gas [truncate(md5sum($reminder), 4)]
+```
+
+The session will remain open for a given timeout and automatically close if
+nothing happens after that, which will put the remind task back at it's normal
+priority.  To close it sooner, I could respond to the text with either simply
+"OK" or "OK truncate(md5sum($reminder), 4)", which is important if
+disambiguation needs to happen, otherwise it will be the most recent one or
+something.
