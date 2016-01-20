@@ -1,0 +1,19 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+package LizardBrain::WWW;
+use Web::Simple;
+
+sub dispatch_request {
+  'GET + /twilio + ?From=&Body=' => sub {
+    my ($self, $from, $body) = @_;
+
+    [ 200, [ 'Content-type', 'text/plain' ], [ "$from: $body" ] ]
+  },
+  '' => sub {
+    [ 405, [ 'Content-type', 'text/plain' ], [ 'Method not allowed' ] ]
+  }
+}
+LizardBrain::WWW->run_if_script;
