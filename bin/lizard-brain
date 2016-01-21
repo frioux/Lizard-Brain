@@ -5,18 +5,22 @@ use warnings;
 
 use Process::Status;
 
-my $total = do { local $/; <STDIN> };
+while (my $total = <STDIN>) {
 
-my $task_path = $ENV{LB_TASKS}||'./tasks';
-opendir(my $dh, $task_path);
+  my $task_path = $ENV{LB_TASKS}||'./tasks';
+  opendir(my $dh, $task_path);
 
-for my $task (readdir $dh) {
-  my $path = "$task_path/$task";
-  next unless -x $path && -f $path;
-  warn "trying $path...\n";
-  open my $fh, '|-', $path;
-  syswrite $fh, $total;
-  close $fh;
-  my $ps = Process::Status->new;
-  exit 0 if $ps->status_code == 0;
+  for my $task (readdir $dh) {
+    my $path = "$task_path/$task";
+    next unless -x $path && -f $path;
+    warn "trying $path...\n";
+    open my $fh, '|-', $path;
+    syswrite $fh, $total;
+    close $fh;
+    my $ps = Process::Status->new;
+    exit 0 if $ps->status_code == 0;
+
+    # TODO: bubble up non-zero exits somehow
+  }
+
 }

@@ -3,7 +3,10 @@
 use strict;
 use warnings;
 
-chomp(my $body = do { local $/; <STDIN> });
+use Capture::Tiny 'capture_merged';
+use Process::Status;
+
+my $body = do { local $/; <STDIN> };
 
 die "$body does not start with remind me to\n"
   unless $body =~ m/^remind me to (.+) at (.+)$/;
@@ -11,7 +14,10 @@ die "$body does not start with remind me to\n"
 my $message = $1;
 my $timespec = $2;
 
-open(my $ph, '|-', 'at', $timespec);
+# TODO: exit non-zero if the command does
+my $out = capture_merged {
+  open(my $ph, '|-', 'at', $timespec);
+  print $ph "./bin/action-pushover $message";
+};
 
-# TODO: add some kind of response for the user
-print $ph "./bin/action-pushover $message";
+print $out
