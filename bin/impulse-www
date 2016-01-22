@@ -6,32 +6,50 @@ use warnings;
 package LizardBrain::WWW;
 use Web::Simple;
 use IO::Socket::IP;
+use Plack::Middleware::Auth::Basic;
+use Authen::Passphrase;
+
+die 'Set LB_PASS to a password hash'
+  unless defined $ENV{LB_PASS};
+
+my $pw = Authen::Passphrase->from_crypt($ENV{LB_PASS});
 
 $|++;
 sub dispatch_request {
   'GET + /twilio + ?From=&Body=' => sub {
     my ($self, $from, $body) = @_;
 
-    return [ 405, [ 'Content-type', 'text/plain' ], [ 'Not authorized yo' ] ]
-      unless $from eq $ENV{MY_CELL};
+    '' => sub {
+      Plack::Middleware::Auth::Basic->new(
+        authenticator => sub {
+          my ($username, $password, $env) = @_;
 
-    my $sock = IO::Socket::IP->new(
-       PeerHost => '127.0.0.1',
-       PeerPort => 8000,
-       Type     => SOCK_STREAM,
-     ) or return [
-       500,
-       [ 'Content-type', 'text/plain' ],
-       [ "Cannot construct socket - $@" ]
-     ];
+          $pw->match("u$username:p$password");
+        },
+      ),
+    },
+    '' => sub {
+      return [ 405, [ 'Content-type', 'text/plain' ], [ 'Not authorized yo' ] ]
+        unless $from eq $ENV{MY_CELL};
 
-    # TODO: bubble up non-zero exits somehow
-     print $sock "$body";
+      my $sock = IO::Socket::IP->new(
+         PeerHost => '127.0.0.1',
+         PeerPort => 8000,
+         Type     => SOCK_STREAM,
+       ) or return [
+         500,
+         [ 'Content-type', 'text/plain' ],
+         [ "Cannot construct socket - $@" ]
+       ];
 
-     shutdown $sock, 1;
+      # TODO: bubble up non-zero exits somehow
+       print $sock "$body";
 
-     local $/;
-     [ 200, [ 'Content-type', 'text/plain' ], [ <$sock> ] ]
+       shutdown $sock, 1;
+
+       local $/;
+       [ 200, [ 'Content-type', 'text/plain' ], [ <$sock> ] ]
+    },
   },
   '' => sub {
     [ 405, [ 'Content-type', 'text/plain' ], [ 'Method not allowed' ] ]
