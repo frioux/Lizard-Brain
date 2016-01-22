@@ -13,7 +13,7 @@ sub dispatch_request {
     my ($self, $from, $body) = @_;
 
     return [ 405, [ 'Content-type', 'text/plain' ], [ 'Not authorized yo' ] ]
-      unless $from ne $ENV{MY_CELL};
+      unless $from eq $ENV{MY_CELL};
 
     my $sock = IO::Socket::IP->new(
        PeerHost => '127.0.0.1',
