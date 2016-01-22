@@ -9,7 +9,7 @@ use Process::Status;
 my $body = do { local $/; <STDIN> };
 
 die "$body does not start with remind me to\n"
-  unless $body =~ m/^remind me to (.+) at (.+)$/;
+  unless $body =~ m/^remind me to (.+) at (.+)$/i;
 
 my $message = $1;
 my $timespec = $2;
@@ -19,5 +19,7 @@ my $out = capture_merged {
   open(my $ph, '|-', 'at', $timespec);
   print $ph "./bin/action-pushover $message";
 };
+
+$out =~ s(warning: commands will be executed using /bin/sh\n)();
 
 print $out

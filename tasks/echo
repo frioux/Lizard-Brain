@@ -6,6 +6,6 @@ use warnings;
 chomp(my $body = do { local $/; <STDIN> });
 
 die "$body does not start with echo\n"
-  unless $body =~ m/^echo (.*)$/;
+  unless $body =~ m/^echo (.*)$/i;
 
 print "$1\n";
