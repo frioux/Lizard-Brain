@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env plackup
 
 use strict;
 use warnings;
@@ -69,7 +69,12 @@ sub github {
 
   system qw(git fetch);
   system qw(git reset --hard @{upstream});
-  exit;
+
+  return [
+    200,
+    [ 'Content-type' => 'text/plain' ],
+    [ 'Updated!' ],
+  ]
 }
 
 $|++;
@@ -81,3 +86,5 @@ sub dispatch_request {
   }
 }
 LizardBrain::WWW->run_if_script;
+
+# vim: ft=perl
