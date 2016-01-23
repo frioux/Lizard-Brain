@@ -1,4 +1,3 @@
-#!/bin/nosh
-tcp-socket-listen --systemd-compatibility 0 8000
-tcp-socket-accept --connection-limit 16 --no-delay
+#!/bin/execlineb
+s6-tcpserver 127.0.0.1 8000
 ./bin/lizard-brain

@@ -1,0 +1,3 @@
+#!/bin/dash
+cd ../..
+plackup bin/impulse-www -p 6000

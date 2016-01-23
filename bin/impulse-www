@@ -8,6 +8,8 @@ use Web::Simple;
 use IO::Socket::IP;
 use Plack::Middleware::Auth::Basic;
 use Authen::Passphrase;
+use Digest::SHA qw(hmac_sha1_hex);
+use Plack::Request;
 
 die 'Set LB_PASS to a password hash'
   unless defined $ENV{LB_PASS};
@@ -50,9 +52,30 @@ sub twilio {
   },
 }
 
+my $secret = $ENV{LB_GH_SECRET};
+
+sub github {
+  my ($self, $env) = @_;
+
+  my $req = Plack::Request->new($env);
+  my $x_hub_signature = $req->header('X-Hub-Signature');
+  my $calculated_signature = 'sha1='.  hmac_sha1_hex($req->content, $secret);
+
+  return [
+    405,
+    [ 'Content-type' => 'text/plain' ],
+    [ 'invalid mac yo' ],
+  ] unless $x_hub_signature eq $calculated_signature;
+
+  system qw(git fetch);
+  system qw(git reset --hard @{upstream});
+  exit;
+}
+
 $|++;
 sub dispatch_request {
   'GET + /twilio + ?From=&Body=' => 'twilio',
+  '/github' => 'github',
   '' => sub {
     [ 405, [ 'Content-type', 'text/plain' ], [ 'Method not allowed' ] ]
   }
