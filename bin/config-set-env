@@ -1,0 +1,7 @@
+#!/bin/dash
+
+export LB_TASKS=${LB_TASKS:-./tasks}
+
+exec "$@"
+
+# vim: ft=sh

@@ -1,3 +1,4 @@
 #!/bin/execlineb
 s6-tcpserver 127.0.0.1 8000
-./bin/lizard-brain
+bin/config-set-env
+bin/lizard-brain

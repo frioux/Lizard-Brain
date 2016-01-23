@@ -7,7 +7,7 @@ use Process::Status;
 
 my $total = do { local $/; <STDIN> };
 
-my $task_path = $ENV{LB_TASKS}||'./tasks';
+my $task_path = $ENV{LB_TASKS};
 opendir(my $dh, $task_path);
 
 for my $task (readdir $dh) {
