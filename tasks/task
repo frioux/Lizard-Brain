@@ -1,0 +1,11 @@
+#!/bin/dash
+
+IFC= read -r line
+
+if [ "$line" = "task list" ]; then
+  ls $LB_TASKS | cat
+else
+  exit 1
+fi
+
+# vim: ft=sh
