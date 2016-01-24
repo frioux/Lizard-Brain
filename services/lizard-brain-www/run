@@ -1,6 +1,4 @@
 #!/bin/nosh
-env SERVER_NAME=busybox SERVER_PORT=6000
 chdir ../..
 bin/config-set-env
-s6-tcpserver 127.0.0.1 6000
-busybox httpd -i -f -h ./www
+plackup -l 127.0.0.1:6000 ./bin/httpd
