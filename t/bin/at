@@ -1,0 +1,15 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use autodie;
+
+open my $fh, '>', "$ENV{TMPDIR}/at-in";
+
+print $fh (join ' ', $0, @ARGV) . "\n";
+while (<STDIN>) {
+   print $fh $_;
+}
+
+print "warning: commands will be executed using /bin/sh\n";
+print "job 1 at Sun Jan 24 20:00:00 2016\n";
