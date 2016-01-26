@@ -20,6 +20,11 @@ The api token to use when sending pushover messages
 The crypt formatted password that (at least) Twilio will use when authentication
 with Lizard Brain.
 
+## `LB_NOTES`
+
+Location of [VOTL](https://github.com/vimoutliner/vimoutliner) file used for
+inspiration etc.
+
 ## `MY_CELL`
 
 The [E.164](https://http://en.wikipedia.org/wiki/E.164) cell that is authorized
