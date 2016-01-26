@@ -1,0 +1,68 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use autodie;
+
+use IO::All;
+use Tie::IxHash;
+use List::Util 'shuffle';
+
+tie my %tree, 'Tie::IxHash';
+my $tree = \%tree;
+my @stack = ($tree);
+
+for (io->file($ENV{LB_NOTES})->slurp) {
+  my ($depth, $msg) = m/^(\t*)(.+)$/;
+
+  pop @stack while $#stack > length $depth;
+  tie my %itree, 'Tie::IxHash';
+  push @stack, ( $stack[-1]{$msg} = \%itree );
+}
+
+sub show {
+  my ($hash, $simplify, $fh, $offset) = @_;
+
+  $fh ||= \*STDOUT;
+  $offset ||= 0;
+
+  for my $key (keys %$hash) {
+    my $out = "$key\n";
+    $out =~ s/\[_\]\s*// if $simplify;
+    print $fh ("\t" x $offset) . $out;
+    show($hash->{$key}, $simplify, $fh, $offset + 1) if $hash->{$key} && %{ $hash->{$key} };
+  }
+}
+
+sub update {
+  open my $fh, '>', "$ENV{LB_NOTES}.tmp";
+  show(shift, 0, $fh);
+  close $fh;
+  rename "$ENV{LB_NOTES}.tmp", $ENV{LB_NOTES};
+}
+
+chomp(my $in = do { local $/; <STDIN> });
+$in =~ s/^\s*//;
+$in =~ s/\s*$//;
+
+if ($in =~ m/^inspire\s+me$/i) {
+  my ($inspiration) = shuffle(keys %{ $tree->{Inspiration} });
+
+  $tree->{Inspiration}{$inspiration =~ s/\[_\]/[X]/r } =
+    delete $tree->{Inspiration}{$inspiration};
+
+  update($tree);
+
+  show({ $inspiration => $tree->{Inspiration}{$inspiration} }, 1);
+}
+if ($in =~ m/^beer\s+me\s+a\s+video$/i) {
+  my ($inspiration) = shuffle(keys %{ $tree->{Videos} });
+
+  $tree->{Videos}{$inspiration =~ s/\[_\]/[X]/r } =
+    delete $tree->{Videos}{$inspiration};
+
+  update($tree);
+
+  show({ $inspiration => $tree->{Videos}{$inspiration} }, 1);
+}
