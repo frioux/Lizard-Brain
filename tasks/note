@@ -70,13 +70,12 @@ if ($in =~ m/^inspire\s+me$/i) {
 } elsif ($in =~ m/^beer\s+me\s+a\s+song$/i) {
   dig_random('Music')
 } elsif ($in =~ m/^(?:q|enqueue|queue)\s+(video|song|music|inspiration)\s+(.*)$/i) {
-  my $key;
-  $1 = lc $1;
-  if ($1 eq 'video') {
+  my $key = lc $1;
+  if ($key eq 'video') {
     $key = 'Videos'
-  } elsif ($1 =~ m/^(?:song|music)$/) {
+  } elsif ($key =~ m/^(?:song|music)$/) {
     $key = 'Music'
-  } elsif ($1 eq 'inspiration') {
+  } elsif ($key eq 'inspiration') {
     $key = 'Inspiration'
   }
 
