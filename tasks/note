@@ -42,27 +42,29 @@ sub update {
   rename "$ENV{LB_NOTES}.tmp", $ENV{LB_NOTES};
 }
 
+sub dig_random {
+  my @path = @_;
+
+
+  my $inner_tree = $tree;
+  $inner_tree = $inner_tree->{$_} for @path;
+
+  my ($choice) = shuffle(keys %$inner_tree);
+
+  $inner_tree->{$choice =~ s/\[_\]/[X]/r } =
+    delete $inner_tree->{$choice};
+
+  update($tree);
+
+  show({ $choice => $inner_tree->{$choice} }, 1);
+}
+
 chomp(my $in = do { local $/; <STDIN> });
 $in =~ s/^\s*//;
 $in =~ s/\s*$//;
 
 if ($in =~ m/^inspire\s+me$/i) {
-  my ($inspiration) = shuffle(keys %{ $tree->{Inspiration} });
-
-  $tree->{Inspiration}{$inspiration =~ s/\[_\]/[X]/r } =
-    delete $tree->{Inspiration}{$inspiration};
-
-  update($tree);
-
-  show({ $inspiration => $tree->{Inspiration}{$inspiration} }, 1);
-}
-if ($in =~ m/^beer\s+me\s+a\s+video$/i) {
-  my ($inspiration) = shuffle(keys %{ $tree->{Videos} });
-
-  $tree->{Videos}{$inspiration =~ s/\[_\]/[X]/r } =
-    delete $tree->{Videos}{$inspiration};
-
-  update($tree);
-
-  show({ $inspiration => $tree->{Videos}{$inspiration} }, 1);
+  dig_random('Inspiration')
+} elsif ($in =~ m/^beer\s+me\s+a\s+video$/i) {
+  dig_random('Videos')
 }
