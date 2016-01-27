@@ -79,7 +79,7 @@ if ($in =~ m/^inspire\s+me$/i) {
     $key = 'Inspiration'
   }
 
-  $tree->{$key}{"[_] $1"} = {};
+  $tree->{$key}{"[_] $2"} = {};
 
   update($tree)
 }
