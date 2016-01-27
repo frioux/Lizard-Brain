@@ -67,4 +67,6 @@ if ($in =~ m/^inspire\s+me$/i) {
   dig_random('Inspiration')
 } elsif ($in =~ m/^beer\s+me\s+a\s+video$/i) {
   dig_random('Videos')
+} elsif ($in =~ m/^beer\s+me\s+a\s+song$/i) {
+  dig_random('Music')
 }
