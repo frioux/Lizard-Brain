@@ -11,4 +11,4 @@ my $p = WebService::Pushover->new(
 );
 
 # TODO: check for failures
-$p->message(message => join ' ', @ARGV);
+$p->message(message => ($ENV{LB_REMINDER}||join ' ', @ARGV));

@@ -8,7 +8,7 @@ open my $fh, '>', "$ENV{TMPDIR}/at-in";
 
 print $fh (join ' ', $0, @ARGV) . "\n";
 while (<STDIN>) {
-   print $fh $_;
+   print $fh "$_ $ENV{LB_REMINDER}";
 }
 
 print "warning: commands will be executed using /bin/sh\n";

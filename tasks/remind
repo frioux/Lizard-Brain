@@ -11,7 +11,7 @@ my $body = do { local $/; <STDIN> };
 die "$body does not start with remind me to\n"
   unless $body =~ m/^remind me(?: to)? (.+) (at|in) (.+)$/i;
 
-my $message = $1;
+$ENV{LB_REMINDER} = $1;
 my $mode = $2;
 my $timespec = $3;
 
@@ -21,7 +21,7 @@ $timespec = "now + $timespec"
 # TODO: exit non-zero if the command does
 my $out = capture_merged {
   open(my $ph, '|-', 'at', $timespec);
-  print $ph "./bin/action-pushover $message";
+  print $ph './bin/action-pushover';
 };
 
 $out =~ s(warning: commands will be executed using /bin/sh\n)();
