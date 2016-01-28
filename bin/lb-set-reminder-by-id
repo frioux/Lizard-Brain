@@ -1,0 +1,16 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use DBI;
+
+my $dbh = DBI->connect($ENV{LB_DSN});
+
+($ENV{LB_REMINDER}) = $dbh->selectrow_array(<<'SQL', undef, $ENV{LB_REMINDER_ID});
+SELECT message
+  FROM reminders
+ WHERE reminders.id = ?
+SQL
+
+exec @ARGV
