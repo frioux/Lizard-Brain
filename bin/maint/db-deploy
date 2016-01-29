@@ -1,0 +1,22 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use DBI;
+use Try::Tiny;
+
+my $dbh = DBI->connect($ENV{LB_DSN});
+
+try {
+
+  $dbh->do(<<'SQL');
+
+    CREATE TABLE reminders (
+      id TEXT PRIMARY KEY,
+      message TEXT
+    )
+
+SQL
+
+}

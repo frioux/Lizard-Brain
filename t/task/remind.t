@@ -4,11 +4,15 @@ use strict;
 use warnings;
 
 use Test::More;
-use File::Temp 'tempdir';
+use File::Temp 'tempdir', 'tempfile';
 use IPC::Open3 'open3';
 use IO::All;
 
 $ENV{PATH} = 't/bin:' . $ENV{PATH};
+my (undef, $db_path) = tempfile();
+$ENV{LB_DSN} = "dbi:SQLite:$db_path";
+
+system 'bin/maint/db-deploy';
 
 subtest 'to + in' => sub {
   my $dir = tempdir( CLEANUP => 1 );
@@ -26,7 +30,7 @@ subtest 'to + in' => sub {
 
   is (
     io->file($dir . "/at-in")->all,
-    "t/bin/at now + 2 minutes\n./bin/action-pushover jump",
+    "t/bin/at now + 2 minutes\nbin/lb-set-reminder-by-id | bin/action-pushover jump",
     'at input',
   );
 };
@@ -47,7 +51,7 @@ subtest 'at' => sub {
 
   is (
     io->file($dir . "/at-in")->all,
-    "t/bin/at 6pm Sunday\n./bin/action-pushover catherine is here",
+    "t/bin/at 6pm Sunday\nbin/lb-set-reminder-by-id | bin/action-pushover catherine is here",
     'at input',
   );
 };

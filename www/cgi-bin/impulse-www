@@ -69,6 +69,7 @@ sub github {
 
   system qw(git fetch);
   system qw(git reset --hard @{upstream});
+  system 'bin/maint/db-deploy';
 
   return [
     200,
