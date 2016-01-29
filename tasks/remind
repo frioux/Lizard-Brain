@@ -33,7 +33,7 @@ $timespec = "now + $timespec"
 # TODO: exit non-zero if the command does
 my $out = capture_merged {
   open(my $ph, '|-', 'at', $timespec);
-  print $ph 'bin/lb-set-reminder-by-id | bin/action-pushover';
+  print $ph 'bin/lb-set-reminder-by-id bin/action-pushover';
 };
 
 $out =~ s(warning: commands will be executed using /bin/sh\n)();

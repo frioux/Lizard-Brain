@@ -30,7 +30,7 @@ subtest 'to + in' => sub {
 
   is (
     io->file($dir . "/at-in")->all,
-    "t/bin/at now + 2 minutes\nbin/lb-set-reminder-by-id | bin/action-pushover jump",
+    "t/bin/at now + 2 minutes\nbin/lb-set-reminder-by-id bin/action-pushover jump",
     'at input',
   );
 };
@@ -51,7 +51,7 @@ subtest 'at' => sub {
 
   is (
     io->file($dir . "/at-in")->all,
-    "t/bin/at 6pm Sunday\nbin/lb-set-reminder-by-id | bin/action-pushover catherine is here",
+    "t/bin/at 6pm Sunday\nbin/lb-set-reminder-by-id bin/action-pushover catherine is here",
     'at input',
   );
 };
