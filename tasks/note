@@ -69,7 +69,7 @@ if ($in =~ m/^inspire\s+me$/i) {
   dig_random('Videos')
 } elsif ($in =~ m/^beer\s+me\s+a\s+song$/i) {
   dig_random('Music')
-} elsif ($in =~ m/^(?:q|enqueue|queue)\s+(video|song|music|inspiration)\s+(.*)$/i) {
+} elsif ($in =~ m/^(?:q|enqueue|queue)\s+(video|song|music|inspiration|idea)\s+(.*)$/i) {
   my $key = lc $1;
   if ($key eq 'video') {
     $key = 'Videos'
@@ -77,6 +77,8 @@ if ($in =~ m/^inspire\s+me$/i) {
     $key = 'Music'
   } elsif ($key eq 'inspiration') {
     $key = 'Inspiration'
+  } elsif ($key eq 'idea') {
+    $key = 'Ideas'
   }
 
   $tree->{$key}{"[_] $2"} = {};
