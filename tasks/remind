@@ -5,6 +5,7 @@ use warnings;
 
 use Capture::Tiny 'capture_merged';
 use Data::GUID 'guid_hex';
+use DateTime::Format::Strptime;
 use DBI;
 use Process::Status;
 
@@ -18,6 +19,8 @@ my $mode = $2;
 my $timespec = $3;
 
 my $dbh = DBI->connect($ENV{LB_DSN});
+$dbh->do('PRAGMA foreign_keys = ON');
+
 my $id = lc guid_hex();
 $id =~ s/^0x//;
 $ENV{LB_REMINDER_ID} = $id;
@@ -35,6 +38,22 @@ my $out = capture_merged {
   open(my $ph, '|-', 'at', $timespec);
   print $ph 'bin/lb-set-reminder-by-id bin/action-pushover';
 };
+
+#                Mon     Feb       1       07:55:00      2016
+my $date_re = qr/\w+ \s+ \w+ \s+ \d+ \s+ \d+:\d+:\d+ \s+ \d+/x;
+
+my ($ts) = $out =~ m/job \s+ \d+ \s+ at \s+ ($date_re) /x;
+
+$ts = DateTime::Format::Strptime->new(
+  pattern => '%a %b %d %T %Y',
+)->parse_datetime($ts)->strftime('%F %T');
+
+# really these should be in a transaction, but it's not like the at command can
+# be rolled back anyway.
+$dbh->do(
+  'INSERT INTO schedules (reminder_id, datetime) VALUES (?, ?)',
+  undef, $id, $ts,
+);
 
 $out =~ s(warning: commands will be executed using /bin/sh\n)();
 

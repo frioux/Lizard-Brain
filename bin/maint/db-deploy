@@ -8,15 +8,24 @@ use Try::Tiny;
 
 my $dbh = DBI->connect($ENV{LB_DSN});
 
-try {
+$dbh->do('PRAGMA foreign_keys = ON');
 
-  $dbh->do(<<'SQL');
+$dbh->do(<<'SQL');
 
-    CREATE TABLE reminders (
-      id TEXT PRIMARY KEY,
-      message TEXT
-    )
+  CREATE TABLE IF NOT EXISTS reminders (
+    id TEXT PRIMARY KEY,
+    message TEXT
+  )
 
 SQL
 
-}
+$dbh->do(<<'SQL');
+
+  CREATE TABLE IF NOT EXISTS schedules (
+    id INT PRIMARY KEY,
+    reminder_id TEXT,
+    datetime TEXT,
+    FOREIGN KEY(reminder_id) REFERENCES reminders(id)
+  )
+
+SQL
