@@ -22,9 +22,9 @@ subtest 'to + in' => sub {
   print $in "remind me to jump in 2 minutes\n";
   close $in;
 
-  is(
+  like(
     do { local $/; <$out> },
-    "job 1 at Sun Jan 24 20:00:00 2016\n",
+    qr/job \w+ at Sun Jan 24 20:00:00 2016\n/,
     'at output',
   );
 
@@ -43,9 +43,9 @@ subtest 'at' => sub {
   print $in "remind me catherine is here at 6pm Sunday\n";
   close $in;
 
-  is(
+  like(
     do { local $/; <$out> },
-    "job 1 at Sun Jan 24 20:00:00 2016\n",
+    qr/job \w+ at Sun Jan 24 20:00:00 2016\n/,
     'at output',
   );
 
