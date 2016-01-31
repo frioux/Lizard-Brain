@@ -11,50 +11,51 @@ use Process::Status;
 
 my $body = do { local $/; <STDIN> };
 
-die "$body does not start with remind me to\n"
-  unless $body =~ m/^remind me(?: to)? (.+) (at|in) (.+)$/i;
+if ($body =~ m/^remind me(?: to)? (.+) (at|in) (.+)$/i) {
+  print create_reminder($1, $2, $3)
+}
 
-my $msg = $1;
-my $mode = $2;
-my $timespec = $3;
+sub create_reminder {
+  my ($msg, $mode, $timespec) = @_;
 
-my $dbh = DBI->connect($ENV{LB_DSN});
-$dbh->do('PRAGMA foreign_keys = ON');
+  my $dbh = DBI->connect($ENV{LB_DSN});
+  $dbh->do('PRAGMA foreign_keys = ON');
 
-my $id = lc guid_hex();
-$id =~ s/^0x//;
-$ENV{LB_REMINDER_ID} = $id;
+  my $id = lc guid_hex();
+  $id =~ s/^0x//;
+  $ENV{LB_REMINDER_ID} = $id;
 
-$dbh->do(
-  'INSERT INTO reminders (id, message) VALUES (?, ?)',
-  undef, $id, $msg,
-);
+  $dbh->do(
+    'INSERT INTO reminders (id, message) VALUES (?, ?)',
+    undef, $id, $msg,
+  );
 
-$timespec = "now + $timespec"
-  if $mode eq 'in';
+  $timespec = "now + $timespec"
+    if $mode eq 'in';
 
-# TODO: exit non-zero if the command does
-my $out = capture_merged {
-  open(my $ph, '|-', 'at', $timespec);
-  print $ph 'bin/lb-set-reminder-by-id bin/action-pushover';
-};
+  # TODO: exit non-zero if the command does
+  my $out = capture_merged {
+    open(my $ph, '|-', 'at', $timespec);
+    print $ph 'bin/lb-set-reminder-by-id bin/action-pushover';
+  };
 
-#                Mon     Feb       1       07:55:00      2016
-my $date_re = qr/\w+ \s+ \w+ \s+ \d+ \s+ \d+:\d+:\d+ \s+ \d+/x;
+  #                Mon     Feb       1       07:55:00      2016
+  my $date_re = qr/\w+ \s+ \w+ \s+ \d+ \s+ \d+:\d+:\d+ \s+ \d+/x;
 
-my ($ts) = $out =~ m/job \s+ \d+ \s+ at \s+ ($date_re) /x;
+  my ($ts) = $out =~ m/job \s+ \d+ \s+ at \s+ ($date_re) /x;
 
-$ts = DateTime::Format::Strptime->new(
-  pattern => '%a %b %d %T %Y',
-)->parse_datetime($ts)->strftime('%F %T');
+  $ts = DateTime::Format::Strptime->new(
+    pattern => '%a %b %d %T %Y',
+  )->parse_datetime($ts)->strftime('%F %T');
 
-# really these should be in a transaction, but it's not like the at command can
-# be rolled back anyway.
-$dbh->do(
-  'INSERT INTO schedules (reminder_id, datetime) VALUES (?, ?)',
-  undef, $id, $ts,
-);
+  # really these should be in a transaction, but it's not like the at command can
+  # be rolled back anyway.
+  $dbh->do(
+    'INSERT INTO schedules (reminder_id, datetime) VALUES (?, ?)',
+    undef, $id, $ts,
+  );
 
-$out =~ s(warning: commands will be executed using /bin/sh\n)();
+  $out =~ s(warning: commands will be executed using /bin/sh\n)();
 
-print $out
+  $out
+}
