@@ -6,21 +6,27 @@ use warnings;
 use Capture::Tiny 'capture_merged';
 use Data::GUID 'guid_hex';
 use DateTime::Format::Strptime;
+use DateTime::Format::SQLite;
 use DBI;
 use Process::Status;
 
 my $body = do { local $/; <STDIN> };
 
+$body =~ s/^\s+//;
+$body =~ s/\s+$//;
+
 if ($body =~ m/^remind me(?: to)? (.+) (at|in) (.+)$/i) {
   print create_reminder($1, $2, $3)
+} elsif ($body =~ m/^(?:show|list)\s+reminders$/) {
+  print reminders()
+} else {
+  exit 1
 }
 
 sub create_reminder {
   my ($msg, $mode, $timespec) = @_;
 
-  my $dbh = DBI->connect($ENV{LB_DSN});
-  $dbh->do('PRAGMA foreign_keys = ON');
-
+  my $dbh = _dbh();
   my $id = lc guid_hex();
   $id =~ s/^0x//;
   $ENV{LB_REMINDER_ID} = $id;
@@ -44,9 +50,7 @@ sub create_reminder {
 
   my ($ts) = $out =~ m/job \s+ \d+ \s+ at \s+ ($date_re) /x;
 
-  $ts = DateTime::Format::Strptime->new(
-    pattern => '%a %b %d %T %Y',
-  )->parse_datetime($ts)->strftime('%F %T');
+  $ts = _dtp()->parse_datetime($ts)->strftime('%F %T');
 
   # really these should be in a transaction, but it's not like the at command can
   # be rolled back anyway.
@@ -59,4 +63,38 @@ sub create_reminder {
   $out =~ s(job \s+ \d+)(job $id)x;
 
   $out
+}
+
+sub reminders {
+  my $dbh = _dbh();
+  my $dtp = DateTime::Format::SQLite->new;
+  my $dtf = _dtp();
+
+  my $rows = $dbh->selectall_arrayref(<<'SQL', { Slice => {} });
+    SELECT me.id, me.message, schedule.datetime FROM reminders me
+      JOIN schedules schedule ON schedule.reminder_id = me.id
+     WHERE schedule.datetime > date('now')
+SQL
+
+  return join "\n",
+    map {;
+      my $date = $dtf->format_datetime($dtp->parse_datetime($_->{datetime}));
+      "$_->{message} job $_->{id} at $date"
+    } @$rows;
+}
+
+my $dbh;
+sub _dbh {
+  return if $dbh;
+  $dbh = DBI->connect($ENV{LB_DSN});
+  $dbh->do('PRAGMA foreign_keys = ON');
+
+  $dbh
+}
+
+my $dtp;
+sub _dtp {
+  $dtp ||= DateTime::Format::Strptime->new(
+    pattern => '%a %b %d %T %Y',
+  )
 }
