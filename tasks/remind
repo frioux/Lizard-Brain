@@ -148,7 +148,7 @@ SQL
 
 my $dbh;
 sub _dbh {
-  return if $dbh;
+  return $dbh if $dbh;
   $dbh = DBI->connect($ENV{LB_DSN});
   $dbh->do('PRAGMA foreign_keys = ON');
 
