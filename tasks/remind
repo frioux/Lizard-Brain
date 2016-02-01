@@ -83,6 +83,7 @@ sub reminders {
     SELECT me.id, me.message, schedule.datetime FROM reminders me
       JOIN schedules schedule ON schedule.reminder_id = me.id
      WHERE schedule.datetime > date('now')
+  ORDER BY schedule.datetime
 SQL
 
   return join "\n",
