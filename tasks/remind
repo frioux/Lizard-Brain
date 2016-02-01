@@ -19,6 +19,15 @@ if ($body =~ m/^remind me(?: to)? (.+) (at|in) (.+)$/i) {
   print create_reminder($1, $2, $3)
 } elsif ($body =~ m/^(?:show|list)\s+reminders$/) {
   print reminders()
+} elsif ($body =~ m/^(?:
+    reremind \s+ (.*) \s+ (at|in) \s+ (.*) |
+    postpone \s+ (.*) \s+ (till|for) \s+ (.*)
+)$/xi) {
+  if ($1) {
+    print reschedule($1, $2, $3)
+  } else {
+    print reschedule($4, ($5 eq 'till' ? 'at' : 'in'), $6)
+  }
 } else {
   exit 1
 }
@@ -81,6 +90,60 @@ SQL
       my $date = $dtf->format_datetime($dtp->parse_datetime($_->{datetime}));
       "$_->{message} job $_->{id} at $date"
     } @$rows;
+}
+
+sub reschedule {
+  my ($id, $type, $when) = @_;
+
+  $id = _expand_id($id);
+
+  $ENV{LB_REMINDER_ID} = $id;
+  $when = "now + $when"
+    if $type eq 'in';
+
+  # TODO: exit non-zero if the command does
+  my $out = capture_merged {
+    open(my $ph, '|-', 'at', $when);
+    print $ph 'bin/lb-set-reminder-by-id bin/action-pushover';
+  };
+
+  #                Mon     Feb       1       07:55:00      2016
+  my $date_re = qr/\w+ \s+ \w+ \s+ \d+ \s+ \d+:\d+:\d+ \s+ \d+/x;
+
+  my ($ts) = $out =~ m/job \s+ \d+ \s+ at \s+ ($date_re) /x;
+
+  $ts = _dtp()->parse_datetime($ts)->strftime('%F %T');
+
+  _dbh()->do(
+    'INSERT INTO schedules (reminder_id, datetime) VALUES (?, ?)',
+    undef, $id, $ts,
+  );
+
+  $out =~ s(warning: commands will be executed using /bin/sh\n)();
+  $out =~ s(job \s+ \d+)(job $id)x;
+
+  $out
+}
+
+sub _expand_id {
+  my ($id) = @_;
+
+  my $dbh = _dbh();
+
+  my $ids = $dbh->selectcol_arrayref(<<'SQL', undef, "$id%");
+    SELECT id FROM reminders where id LIKE ?
+SQL
+
+
+  if (@$ids > 1) {
+    print "Too many reminders match: " . join "\n", @$ids;
+    exit 1;
+  } elsif (@$ids < 1) {
+    print "No matching reminders found";
+    exit 1;
+  } else {
+    return $ids->[0]
+  }
 }
 
 my $dbh;
