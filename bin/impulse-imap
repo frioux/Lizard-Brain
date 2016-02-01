@@ -1,0 +1,18 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Mail::IMAPClient;
+
+# see: https://metacpan.org/source/PLOBBES/Mail-IMAPClient-3.37/examples/idle.pl
+
+my $host = $ENV{LB_IMAP_SERVER};
+my $id   = $ENV{LB_IMAP_USER};
+my $pass = $ENV{LB_IMAP_PASS};
+
+my $client = Mail::IMAPClient->new(
+   Server => $host,
+   User => $id,
+   Password => $pass,
+) or die "Cannot connect to $host as $id: $@";
