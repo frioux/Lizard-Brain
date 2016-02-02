@@ -49,7 +49,7 @@ sub dig_random {
   my $inner_tree = $tree;
   $inner_tree = $inner_tree->{$_} for @path;
 
-  my ($choice) = shuffle(keys %$inner_tree);
+  my ($choice) = shuffle(grep !m/\[X\]/, keys %$inner_tree);
 
   $inner_tree->{$choice =~ s/\[_\]/[X]/r } =
     delete $inner_tree->{$choice};
