@@ -1,4 +1,6 @@
 #!/bin/nosh
 chdir ../..
 bin/config-set-env
-plackup -l 127.0.0.1:6000 ./bin/httpd
+tcp-socket-listen 127.0.0.1 6000
+tcp-socket-accept --no-delay
+httpd-rs plackup www/cgi-bin/impulse-www
