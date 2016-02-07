@@ -68,7 +68,7 @@ sub github {
   ] unless $x_hub_signature eq $calculated_signature;
 
   `git fetch`;
-  `git reset --hard @{upstream}`;
+  `git reset --hard \@{upstream}`;
   `bin/maint/db-deploy`;
 
   return [
