@@ -67,9 +67,9 @@ sub github {
     [ 'invalid mac yo' ],
   ] unless $x_hub_signature eq $calculated_signature;
 
-  system qw(git fetch);
-  system qw(git reset --hard @{upstream});
-  system '../../bin/maint/db-deploy';
+  `git fetch`;
+  `git reset --hard @{upstream}`;
+  `bin/maint/db-deploy`;
 
   return [
     200,
