@@ -82,6 +82,9 @@ $|++;
 sub dispatch_request {
   'GET + /twilio + ?From=&Body=' => 'twilio',
   '/github' => 'github',
+  '/ok' => sub {
+    [ 200, [ 'Content-Type', 'text/plain' ], [ 'All is well' ] ],
+  },
   '' => sub {
     [ 405, [ 'Content-type', 'text/plain' ], [ 'Method not allowed' ] ]
   }
