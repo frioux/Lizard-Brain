@@ -84,5 +84,7 @@ if ($in =~ m/^inspire\s+me$/i) {
 
   $tree->{$key}{"[_] $item"} = {};
 
-  update($tree)
+  update($tree);
+
+  print 'Enqueued item!';
 }
