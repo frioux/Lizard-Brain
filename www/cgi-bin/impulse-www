@@ -67,9 +67,16 @@ sub github {
     [ 'invalid mac yo' ],
   ] unless $x_hub_signature eq $calculated_signature;
 
+  require JSON;
+  my $content = JSON::decode_json($req->content);
+
+  chdir '/home/frew/code/corn'
+    if $content->{repository}{full_name} eq 'frioux/corn';
+
   `git fetch`;
   `git reset --hard \@{upstream}`;
-  `bin/maint/db-deploy`;
+  `bin/maint/db-deploy`
+    if -e 'bin/maint/db-deploy';
 
   return [
     200,
