@@ -45,6 +45,14 @@ sub create_reminder {
     undef, $id, $msg,
   );
 
+  if ($timespec =~ m/naptime/) {
+    my $offset = int rand 9;
+    $timespec =~ s/naptime/1:1${offset}pm/;
+  } elsif ($timespec =~ m/bedtime/) {
+    my $offset = int rand 9;
+    $timespec =~ s/bedtime/8:1${offset}pm/;
+  }
+
   $timespec = "now + $timespec"
     if $mode eq 'in';
 

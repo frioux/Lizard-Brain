@@ -56,4 +56,46 @@ subtest 'at' => sub {
   );
 };
 
+subtest 'at + naptime' => sub {
+  my $dir = tempdir( CLEANUP => 1 );
+  local $ENV{TMPDIR} = $dir;
+
+  my $child_pid = open3(my ($in, $out, $err), './tasks/remind');
+  print $in "remind me order thing at naptime\n";
+  close $in;
+
+  like(
+    do { local $/; <$out> },
+    qr/job \w+ at Sun Jan 24 20:00:00 2016\n/,
+    'at output',
+  );
+
+  like (
+    io->file($dir . "/at-in")->all,
+    qr{^t/bin/at 1:1\dpm\nbin/lb-set-reminder-by-id bin/action-pushover order thing$},
+    'at input',
+  );
+};
+
+subtest 'at + bedtime' => sub {
+  my $dir = tempdir( CLEANUP => 1 );
+  local $ENV{TMPDIR} = $dir;
+
+  my $child_pid = open3(my ($in, $out, $err), './tasks/remind');
+  print $in "remind me order thing at bedtime\n";
+  close $in;
+
+  like(
+    do { local $/; <$out> },
+    qr/job \w+ at Sun Jan 24 20:00:00 2016\n/,
+    'at output',
+  );
+
+  like (
+    io->file($dir . "/at-in")->all,
+    qr{^t/bin/at 8:1\dpm\nbin/lb-set-reminder-by-id bin/action-pushover order thing$},
+    'at input',
+  );
+};
+
 done_testing;
