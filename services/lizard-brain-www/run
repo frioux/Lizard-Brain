@@ -3,4 +3,4 @@ chdir ../..
 bin/config-set-env
 tcp-socket-listen 127.0.0.1 6000
 tcp-socket-accept --no-delay
-httpd-rs plackup www/cgi-bin/impulse-www
+cgid plackup www/cgi-bin/impulse-www
