@@ -51,6 +51,10 @@ sub create_reminder {
   } elsif ($timespec =~ m/bedtime/) {
     my $offset = int rand 9;
     $timespec =~ s/bedtime/8:1${offset}pm/;
+  } elsif ($timespec =~ m/tomorrow/) {
+    my (undef, undef, $hour) = localtime();
+
+    $timespec =~ s/tomorrow/today/ if $hour < 6;
   }
 
   $timespec = "now + $timespec"
