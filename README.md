@@ -37,3 +37,10 @@ The secret to use for Github authentication.  Maybe just use `LB_PASS` for this?
 ## `LB_TASKS`
 
 The directory where tasks are located.  Default is `./tasks`.
+
+## twitter
+
+ * `TWITTER_CONSUMER_KEY`
+ * `TWITTER_CONSUMER_SECRET`
+ * `TWITTER_ACCESS_TOKEN`
+ * `TWITTER_ACCESS_TOKEN_SECRET`

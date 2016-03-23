@@ -1,0 +1,98 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use 5.22.0;
+
+use List::Util 'max', 'min', 'sum';
+
+use autodie;
+
+use Net::Twitter;
+use DateTime;
+use DateTime::Format::Strptime;
+
+my $user = shift;
+
+my $nt = Net::Twitter->new(
+    traits => [qw/API::RESTv1_1/],
+    ssl => 1,
+    consumer_key => $ENV{TWITTER_CONSUMER_KEY},
+    consumer_secret => $ENV{TWITTER_CONSUMER_SECRET},
+    access_token => $ENV{TWITTER_ACCESS_TOKEN},
+    access_token_secret => $ENV{TWITTER_ACCESS_TOKEN_SECRET},
+);
+
+
+chomp(my $in = do { local $/; <STDIN> });
+$in =~ s/^\s*//;
+$in =~ s/\s*$//;
+if ($in =~ m/^twitter user (.+)$/) {
+    user_data($1)
+} else {
+    exit 1;
+}
+
+sub user_data {
+    my @in = (
+        screen_name => $user,
+        trim_user => 1,
+        exclude_replies => 1,
+        count => 200,
+    );
+    my @statuses = @{$nt->user_timeline({@in})};
+
+    # 1000 or 2 weeks
+    my $oldest = DateTime->now->subtract( days => 30 )->ymd('-');
+    while (@statuses < 1000 && $oldest lt _p($statuses[-1])->ymd('-')) {
+        say scalar @statuses . ' statuses, max_id: ' . $statuses[-1]->{id};
+        my @new_statuses =
+            @{$nt->user_timeline({
+                @in,
+                max_id => min( map $_->{id}, @statuses ),
+            })};
+        say scalar @new_statuses . ' new statuses!';
+        @statuses = (@new_statuses, @statuses);
+        my %statuses = map { $_->{id} => $_ } @statuses;
+        @statuses = values %statuses;
+        @statuses =
+            map { $_->[1] }
+            sort { $a->[0] <=> $b->[0] }
+            map { [_p($_), $_] }
+            @statuses;
+    }
+
+    my %days;
+    for my $s (@statuses) {
+        my $x = _p($s)->ymd('-');
+        $days{$x} ||= 1;
+        $days{$x}++;
+    }
+
+    my $f = DateTime::Format::Strptime->new(
+        pattern => '%F',
+    );
+
+    @statuses =
+        map { $_->[1] }
+        sort { $a->[0] <=> $b->[0] }
+        map { [_p($_), $_] }
+        @statuses;
+
+    my $day_count = do {
+        my $min = $f->parse_datetime(_p($statuses[0]))->epoch;
+        my $max = $f->parse_datetime(_p($statuses[-1]))->epoch;
+
+        int(( $max - $min ) / (60 * 60 * 24))
+    };
+    say "min: " . min(values %days);
+    say "max: " . max(values %days);
+    printf "avg: %0.02f\n", scalar @statuses / $day_count;
+}
+
+sub _p {
+    DateTime::Format::Strptime->new(
+        pattern => '%a %b %d %T %z %Y',
+    )->parse_datetime($_[0]->{created_at})
+}
