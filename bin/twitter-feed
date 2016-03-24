@@ -3,11 +3,15 @@
 use strict;
 use warnings;
 
-use List::Util 'max';
+use 5.22.0;
+
+use List::Util 'max', 'min', 'sum';
 
 use autodie;
 
 use Net::Twitter;
+use DateTime;
+use DateTime::Format::Strptime;
 
 my $nt = Net::Twitter->new(
     traits => [qw/API::RESTv1_1/],
@@ -15,7 +19,7 @@ my $nt = Net::Twitter->new(
 );
 
 use Data::Dumper::Concise;
-my $user = 'thegrugq';
+my $user = shift;
 
 my @in = (
     screen_name => $user,
@@ -27,7 +31,8 @@ my @statuses = sort { $a->{id} cmp $b->{id} } @{$nt->user_timeline({@in})};
 _save($user, \@statuses);
 
 # 1000 or 2 weeks
-while (@statuses < 1000) {
+my $oldest = DateTime->now->subtract( days => 14 )->ymd('-');
+while (@statuses < 1000 && $oldest lt _p($statuses[-1])->ymd('-')) {
     my @new_statuses =
         @{$nt->user_timeline({
             @in,
@@ -39,6 +44,23 @@ while (@statuses < 1000) {
         sort { $a->{id} cmp $b->{id} }
         values %statuses;
     _save($user, \@statuses);
+}
+
+my %days;
+for my $s (@statuses) {
+    my $x = _p($s)->ymd('-');
+    $days{$x} ||= 1;
+    $days{$x}++;
+}
+
+say "min: " . min(values %days);
+say "max: " . max(values %days);
+say "avg: " . sum(values %days) / scalar values %days;
+
+sub _p {
+    DateTime::Format::Strptime->new(
+        pattern => '%a %b %d %T %z %Y',
+    )->parse_datetime($_[0]->{created_at})
 }
 
 sub _save {
