@@ -53,9 +53,19 @@ for my $s (@statuses) {
     $days{$x}++;
 }
 
+my $f = DateTime::Format::Strptime->new(
+    pattern => '%F',
+);
+
+
+my $day_count = do {
+    my $min = $f->parse_datetime(_p($statuses[0]))->epoch;
+    my $max = $f->parse_datetime(_p($statuses[-1]))->epoch;
+    int(( $max - $min ) / (60 * 60 * 24))
+};
 say "min: " . min(values %days);
 say "max: " . max(values %days);
-say "avg: " . sum(values %days) / scalar values %days;
+printf "avg: %0.02f\n", scalar(@statuses) / $day_count;
 
 sub _p {
     DateTime::Format::Strptime->new(
