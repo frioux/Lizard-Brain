@@ -87,4 +87,6 @@ if ($in =~ m/^inspire\s+me$/i) {
   update($tree);
 
   print 'Enqueued item!';
+} else {
+  exit 1
 }
