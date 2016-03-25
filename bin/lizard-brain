@@ -5,6 +5,7 @@ use warnings;
 
 use Process::Status;
 
+warn "slurping STDIN...\n";
 my $total = do { local $/; <STDIN> };
 
 my $task_path = $ENV{LB_TASKS};
