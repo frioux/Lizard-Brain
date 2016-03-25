@@ -1,6 +1,6 @@
 #!/bin/nosh
 tcp-socket-listen --systemd-compatibility 127.0.0.1 8000
 tcp-socket-accept --connection-limit 16 --no-delay
-envdir --ignore-nodir --chomp ~/.lizard-brain
+envdir --ignore-nodir --chomp /home/frew/.lizard-brain
 bin/config-set-env
 bin/lizard-brain
