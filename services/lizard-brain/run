@@ -1,4 +1,3 @@
 #!/bin/nosh
 chdir ../..
-bin/config-set-env
 bin/service
