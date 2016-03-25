@@ -34,7 +34,7 @@ my $nt = Net::Twitter->new(
 
 sub user_data {
     my @in = (
-        screen_name => $user,
+        screen_name => shift,
         trim_user => 1,
         exclude_replies => 1,
         count => 200,
