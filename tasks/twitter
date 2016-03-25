@@ -46,7 +46,6 @@ sub user_data {
     # 1000 or 2 weeks
     my $oldest = DateTime->now->subtract( days => 30 )->ymd('-');
     while (@statuses < 1000 && $oldest lt _p($statuses[-1])->ymd('-')) {
-        say scalar @statuses . ' statuses, max_id: ' . $statuses[-1]->{id};
         my @new_statuses =
             @{$nt->user_timeline({
                 @in,
