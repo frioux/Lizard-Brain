@@ -5,6 +5,7 @@ use warnings;
 
 use 5.20.0;
 
+use re '/i';
 use List::Util 'max', 'min', 'sum';
 
 use autodie;
