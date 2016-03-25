@@ -48,7 +48,6 @@ sub user_data {
                 @in,
                 max_id => min( map $_->{id}, @statuses ),
             })};
-        say scalar @new_statuses . ' new statuses!';
         @statuses = (@new_statuses, @statuses);
         my %statuses = map { $_->{id} => $_ } @statuses;
         @statuses = values %statuses;
@@ -82,9 +81,10 @@ sub user_data {
 
         int(( $max - $min ) / (60 * 60 * 24))
     };
-    say "min: " . min(values %days);
-    say "max: " . max(values %days);
-    printf "avg: %0.02f\n", scalar @statuses / $day_count;
+    printf "min: %d, max: %d, avg: %0.02f\n",
+        min(values %days),
+        max(values %days),
+        scalar @statuses / $day_count;
 }
 
 sub _p {
