@@ -18,21 +18,20 @@ if ($in =~ m/^twitter user (.+)$/) {
     exit 1;
 }
 
-require DateTime;
-require DateTime::Format::Strptime;
-require Net::Twitter;
-
-my $nt = Net::Twitter->new(
-    traits => [qw/API::RESTv1_1/],
-    ssl => 1,
-    consumer_key => $ENV{TWITTER_CONSUMER_KEY},
-    consumer_secret => $ENV{TWITTER_CONSUMER_SECRET},
-    access_token => $ENV{TWITTER_ACCESS_TOKEN},
-    access_token_secret => $ENV{TWITTER_ACCESS_TOKEN_SECRET},
-);
-
-
 sub user_data {
+    require DateTime;
+    require DateTime::Format::Strptime;
+    require Net::Twitter;
+
+    my $nt = Net::Twitter->new(
+        traits => [qw/API::RESTv1_1/],
+        ssl => 1,
+        consumer_key => $ENV{TWITTER_CONSUMER_KEY},
+        consumer_secret => $ENV{TWITTER_CONSUMER_SECRET},
+        access_token => $ENV{TWITTER_ACCESS_TOKEN},
+        access_token_secret => $ENV{TWITTER_ACCESS_TOKEN_SECRET},
+    );
+
     my @in = (
         screen_name => shift,
         trim_user => 1,
