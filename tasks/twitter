@@ -9,11 +9,18 @@ use List::Util 'max', 'min', 'sum';
 
 use autodie;
 
-use Net::Twitter;
-use DateTime;
-use DateTime::Format::Strptime;
+chomp(my $in = do { local $/; <STDIN> });
+$in =~ s/^\s*//;
+$in =~ s/\s*$//;
+if ($in =~ m/^twitter user (.+)$/) {
+    user_data($1)
+} else {
+    exit 1;
+}
 
-my $user = shift;
+require DateTime;
+require DateTime::Format::Strptime;
+require Net::Twitter;
 
 my $nt = Net::Twitter->new(
     traits => [qw/API::RESTv1_1/],
@@ -24,15 +31,6 @@ my $nt = Net::Twitter->new(
     access_token_secret => $ENV{TWITTER_ACCESS_TOKEN_SECRET},
 );
 
-
-chomp(my $in = do { local $/; <STDIN> });
-$in =~ s/^\s*//;
-$in =~ s/\s*$//;
-if ($in =~ m/^twitter user (.+)$/) {
-    user_data($1)
-} else {
-    exit 1;
-}
 
 sub user_data {
     my @in = (
