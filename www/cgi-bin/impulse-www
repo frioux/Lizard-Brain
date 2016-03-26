@@ -10,6 +10,7 @@ use Plack::Middleware::Auth::Basic;
 use Authen::Passphrase;
 use Digest::SHA qw(hmac_sha1_hex);
 use Plack::Request;
+use String::Compare::ConstantTime;
 
 die 'Set LB_PASS to a password hash'
   unless defined $ENV{LB_PASS};
@@ -65,7 +66,7 @@ sub github {
     405,
     [ 'Content-type' => 'text/plain' ],
     [ 'invalid mac yo' ],
-  ] unless $x_hub_signature eq $calculated_signature;
+  ] unless String::Compare::ConstantTime::equals($x_hub_signature, $calculated_signature);
 
   require JSON;
   my $content = JSON::decode_json($req->content);
