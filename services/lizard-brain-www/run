@@ -1,6 +1,7 @@
 #!/bin/nosh
 chdir ../..
-bin/config-set-env
 tcp-socket-listen 127.0.0.1 6000
 tcp-socket-accept --no-delay
+envdir --ignore-nodir --chomp /home/frew/.lizard-brain
+bin/config-set-env
 cgid plackup www/cgi-bin/impulse-www
