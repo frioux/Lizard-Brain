@@ -5,7 +5,7 @@ use warnings;
 
 use Process::Status;
 
-warn "slurping STDIN...\n";
+warn "[$$] slurping STDIN...\n";
 my $total = do { local $/; <STDIN> };
 
 my $task_path = $ENV{LB_TASKS};
@@ -14,7 +14,7 @@ opendir(my $dh, $task_path);
 for my $task (readdir $dh) {
   my $path = "$task_path/$task";
   next unless -x $path && -f $path;
-  warn "trying $path...\n";
+  warn "[$$] trying $path...\n";
   open my $fh, '|-', $path;
   syswrite $fh, $total;
   close $fh;

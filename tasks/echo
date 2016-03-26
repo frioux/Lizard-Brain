@@ -8,4 +8,5 @@ chomp(my $body = do { local $/; <STDIN> });
 exit 1
   unless $body =~ m/^echo (.*)$/i;
 
+warn sprintf "[%d] echo: echoing\n", getppid;
 print "$1\n";

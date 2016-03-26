@@ -64,14 +64,18 @@ $in =~ s/^\s*//;
 $in =~ s/\s*$//;
 
 if ($in =~ m/^inspire\s+me$/i) {
+  warn sprintf "[%d] note: inspiring\n", getppid;
   dig_random('Inspiration')
 } elsif ($in =~ m/^beer\s+me\s+a\s+video$/i) {
+  warn sprintf "[%d] note: videoing\n", getppid;
   dig_random('Videos')
 } elsif ($in =~ m/^beer\s+me\s+a\s+song$/i) {
+  warn sprintf "[%d] note: musicing\n", getppid;
   dig_random('Music')
 } elsif ($in =~ m/^(?:q|enqueue|queue)\s+(video|song|music|inspiration|idea)\s+(.*)$/i) {
   my $key = lc $1;
   my $item = $2;
+  warn sprintf "[%d] note: q'ing $item\n", getppid;
   if ($key eq 'video') {
     $key = 'Videos'
   } elsif ($key =~ m/^(?:song|music)$/) {

@@ -16,13 +16,16 @@ $body =~ s/^\s+//;
 $body =~ s/\s+$//;
 
 if ($body =~ m/^remind me(?: to)? (.+) (at|in) (.+)$/i) {
+  warn sprintf "[%d] remind: create\n", getppid;
   print create_reminder($1, $2, $3)
 } elsif ($body =~ m/^(?:show|list)\s+reminders$/) {
+  warn sprintf "[%d] remind: list\n", getppid;
   print reminders()
 } elsif ($body =~ m/^(?:
     reremind \s+ (.*) \s+ (at|in) \s+ (.*) |
     postpone \s+ (.*) \s+ (till|for) \s+ (.*)
 )$/xi) {
+  warn sprintf "[%d] remind: resched\n", getppid;
   if ($1) {
     print reschedule($1, $2, $3)
   } else {

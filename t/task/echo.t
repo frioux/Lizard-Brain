@@ -6,8 +6,10 @@ use warnings;
 use Test::More;
 
 use IPC::Open3 'open3';
+use Symbol 'gensym';
 
-my $child_pid = open3(my ($in, $out, $err), './tasks/echo');
+my $err = gensym;
+my $child_pid = open3(my ($in, $out), $err, './tasks/echo');
 print $in "echo station\n";
 close $in;
 
