@@ -1,3 +1,4 @@
+requires 'AnyEvent::Twitter::Stream';
 requires 'Data::GUID';
 requires 'DateTime::Format::Strptime';
 requires 'DateTime::Format::SQLite';

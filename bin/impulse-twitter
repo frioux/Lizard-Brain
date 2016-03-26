@@ -1,0 +1,55 @@
+#!/usr/bin/env perl
+
+use 5.20.0;
+use warnings;
+
+use AnyEvent::Twitter::Stream;
+use IO::Socket::IP;
+
+my $done = AE::cv;
+
+# receive updates from @following_ids
+my $listener = AnyEvent::Twitter::Stream->new(
+  # XXX: https://github.com/miyagawa/AnyEvent-Twitter-Stream/issues/22
+  # use_compression => 1,
+  consumer_key => $ENV{TWITTER_CONSUMER_KEY},
+  consumer_secret => $ENV{TWITTER_CONSUMER_SECRET},
+  token => $ENV{TWITTER_ACCESS_TOKEN},
+  token_secret => $ENV{TWITTER_ACCESS_TOKEN_SECRET},
+  method   => 'filter',
+  follow   => 8960942,
+  on_tweet => sub {
+    my $tweet = shift;
+    return unless $tweet->{text} =~ m/Love this track (.*) on \@SoundCloud/;
+
+    my $sock = IO::Socket::IP->new(
+      PeerHost => '127.0.0.1',
+      PeerPort => 8000,
+      Type     => SOCK_STREAM,
+    ) or die "Cannot construct socket - $@";
+
+    # TODO: bubble up non-zero exits somehow
+    print $sock "q song $1 " .
+      sprintf "(from https://twitter.com/%s/status/%s)";
+        $tweet->{user}{screen_name}, $tweet->{id_str};
+
+    shutdown $sock, 1;
+
+    local $/;
+    [ 200, [ 'Content-type', 'text/plain' ], [ <$sock> ] ]
+  },
+  on_keepalive => sub {
+    warn "ping\n";
+  },
+  on_error => sub {
+    my $error = shift;
+    warn "ERROR: $error\n";
+    $done->send;
+  },
+  on_eof   => sub {
+    $done->send;
+  },
+  timeout => 45,
+);
+
+$done->recv;

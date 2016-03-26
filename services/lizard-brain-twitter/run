@@ -1,0 +1,5 @@
+#!/bin/nosh
+chdir ../..
+envdir --ignore-nodir --chomp /home/frew/.lizard-brain
+bin/config-set-env
+bin/impulse-twitter
