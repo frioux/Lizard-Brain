@@ -30,7 +30,7 @@ my $listener = AnyEvent::Twitter::Stream->new(
 
     # TODO: bubble up non-zero exits somehow
     print $sock "q song $1 " .
-      sprintf "(from https://twitter.com/%s/status/%s)";
+      sprintf "(from https://twitter.com/%s/status/%s)",
         $tweet->{user}{screen_name}, $tweet->{id_str};
 
     shutdown $sock, 1;
