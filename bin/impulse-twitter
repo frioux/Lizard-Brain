@@ -38,9 +38,6 @@ my $listener = AnyEvent::Twitter::Stream->new(
     local $/;
     [ 200, [ 'Content-type', 'text/plain' ], [ <$sock> ] ]
   },
-  on_keepalive => sub {
-    warn "ping\n";
-  },
   on_error => sub {
     my $error = shift;
     warn "ERROR: $error\n";
