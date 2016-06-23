@@ -3,10 +3,10 @@
 use strict;
 use warnings;
 
-use HTTP::Tiny;
+use LWP::UserAgent;
 use HTTP::Request::Common;
 
-my $ua = HTTP::Tiny->new( verify_SSL => 1 );
+my $ua = LWP::UserAgent->new( keep_alive => 1 );
 
 my $res = send_message();
 
