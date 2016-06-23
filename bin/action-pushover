@@ -10,12 +10,10 @@ my $ua = LWP::UserAgent->new( keep_alive => 1 );
 
 my $res = send_message();
 
-if ($res->{status} == 500) {
-   my $max_retries = 20;
-   while ($res->{status} == 500 && $max_retries--) {
-      sleep 5;
-      send_message();
-   }
+my $max_retries = 20;
+while ($res->code == 500 && $max_retries--) {
+   sleep 5;
+   send_message();
 }
 
 sub send_message {
