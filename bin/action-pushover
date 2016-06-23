@@ -3,12 +3,27 @@
 use strict;
 use warnings;
 
-use WebService::Pushover;
+use HTTP::Tiny;
+use HTTP::Request::Common;
 
-my $p = WebService::Pushover->new(
-   user_token => $ENV{PUSHOVER_USER},
-   api_token  => $ENV{PUSHOVER_API},
-);
+my $ua = HTTP::Tiny->new( verify_SSL => 1 );
 
-# TODO: check for failures
-$p->message(message => ($ENV{LB_REMINDER}||join ' ', @ARGV));
+my $res = send_message();
+
+if ($res->{status} == 500) {
+   my $max_retries = 20;
+   while ($res->{status} == 500 && $max_retries--) {
+      sleep 5;
+      send_message();
+   }
+}
+
+sub send_message {
+   $ua->request(
+      POST 'https://api.pushover.net/1/messages.json' => {
+         token   => $ENV{PUSHOVER_API},
+         user    => $ENV{PUSHOVER_USER},
+         message => ($ENV{LB_REMINDER}||join ' ', @ARGV),
+      },
+   )
+}
