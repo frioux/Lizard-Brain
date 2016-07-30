@@ -7,6 +7,10 @@ A computer assisted brain stem.
 Configuration is managed entirely by environment variables.  The list of
 configuration fields are as follows:
 
+## `DROPBOX_ACCESS_TOKEN`
+
+OAuth 2 Access Token for reading from and wriitng to Dropbox.
+
 ## `PUSHOVER_USER`
 
 The user token to send pushover messages to
@@ -23,7 +27,7 @@ with Lizard Brain.
 ## `LB_NOTES`
 
 Location of [VOTL](https://github.com/vimoutliner/vimoutliner) file used for
-inspiration etc.
+inspiration etc.  Some location in dropbox (like `/foo/bar.otl`)
 
 ## `MY_CELL`
 

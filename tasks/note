@@ -5,6 +5,7 @@ use warnings;
 
 use autodie;
 
+use File::Dropbox;
 use IO::All;
 use Tie::IxHash;
 use List::Util 'shuffle';
@@ -13,7 +14,15 @@ tie my %tree, 'Tie::IxHash';
 my $tree = \%tree;
 my @stack = ($tree);
 
-for (io->file($ENV{LB_NOTES})->slurp) {
+my $dropbox = File::Dropbox->new(
+   access_token  => $ENV{DROPBOX_ACCESS_TOKEN},
+   root => 'dropbox',
+   oauth2 => 1,
+);
+
+open $dropbox, '<', $ENV{LB_NOTES};
+
+while (<$dropbox>) {
   my ($depth, $msg) = m/^(\t*)(.+)$/;
 
   pop @stack while $#stack > length $depth;
@@ -36,10 +45,9 @@ sub show {
 }
 
 sub update {
-  open my $fh, '>', "$ENV{LB_NOTES}.tmp";
-  show(shift, 0, $fh);
-  close $fh;
-  rename "$ENV{LB_NOTES}.tmp", $ENV{LB_NOTES};
+  open $dropbox, '>', "$ENV{LB_NOTES}";
+  show(shift, 0, $dropbox);
+  close $dropbox;
 }
 
 sub dig_random {

@@ -4,6 +4,7 @@ requires 'DateTime::Format::Strptime';
 requires 'DateTime::Format::SQLite';
 requires 'DBI';
 requires 'DBD::SQLite';
+requires 'File::Dropbox';
 requires 'IO::All';
 requires 'Net::Twitter';
 requires 'Process::Status';
