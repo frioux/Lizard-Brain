@@ -5,10 +5,14 @@ use warnings;
 
 use autodie;
 
+use Encode qw(encode decode);
 use File::Dropbox;
 use IO::All;
 use Tie::IxHash;
 use List::Util 'shuffle';
+
+binmode STDIN, 'encoding(UTF-8)';
+binmode STDOUT, 'encoding(UTF-8)';
 
 tie my %tree, 'Tie::IxHash';
 my $tree = \%tree;
@@ -23,6 +27,7 @@ my $dropbox = File::Dropbox->new(
 open $dropbox, '<', $ENV{LB_NOTES};
 
 while (<$dropbox>) {
+  $_ = decode('UTF-8', $_);
   my ($depth, $msg) = m/^(\t*)(.+)$/;
 
   pop @stack while $#stack > length $depth;
@@ -39,7 +44,9 @@ sub show {
   for my $key (keys %$hash) {
     my $out = "$key\n";
     $out =~ s/\[_\]\s*// if $simplify;
-    print $fh ("\t" x $offset) . $out;
+    my $str = ("\t" x $offset) . $out;
+    $str = encode('UTF-8', $str);
+    print $fh $str;
     show($hash->{$key}, $simplify, $fh, $offset + 1) if $hash->{$key} && %{ $hash->{$key} };
   }
 }

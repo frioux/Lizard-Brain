@@ -11,6 +11,7 @@ use Authen::Passphrase;
 use Digest::SHA qw(hmac_sha1_hex);
 use Plack::Request;
 use String::Compare::ConstantTime;
+use Encode qw(encode decode);
 
 die 'Set LB_PASS to a password hash'
   unless defined $ENV{LB_PASS};
@@ -43,8 +44,8 @@ sub twilio {
        [ "Cannot construct socket - $@" ]
      ];
 
-    # TODO: bubble up non-zero exits somehow
-     print $sock "$body";
+     # TODO: bubble up non-zero exits somehow
+     print $sock encode('UTF-8', "$body");
 
      shutdown $sock, 1;
 

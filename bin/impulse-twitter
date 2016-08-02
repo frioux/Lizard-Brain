@@ -4,6 +4,7 @@ use 5.20.0;
 use warnings;
 
 use AnyEvent::Twitter::Stream;
+use Encode 'encode';
 use IO::Socket::IP;
 
 my $done = AE::cv;
@@ -29,9 +30,11 @@ my $listener = AnyEvent::Twitter::Stream->new(
     ) or die "Cannot construct socket - $@";
 
     # TODO: bubble up non-zero exits somehow
-    print $sock "q song $1 " .
+    my $str = "q song $1 " .
       sprintf "(from https://twitter.com/%s/status/%s)",
         $tweet->{user}{screen_name}, $tweet->{id_str};
+    $str = encode('UTF-8', $str);
+    print $sock $str;
 
     shutdown $sock, 1;
 
