@@ -72,7 +72,7 @@ subtest 'at + naptime' => sub {
 
   like (
     io->file($dir . "/at-in")->all,
-    qr{^t/bin/at 1:1\dpm\nbin/lb-set-reminder-by-id bin/action-pushover order thing$},
+    qr{^t/bin/at 1:4\dpm\nbin/lb-set-reminder-by-id bin/action-pushover order thing$},
     'at input',
   );
 };
