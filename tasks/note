@@ -80,13 +80,13 @@ $in =~ s/\s*$//;
 
 if ($in =~ m/^inspire\s+me$/i) {
   warn sprintf "[%d] note: inspiring\n", getppid;
-  dig_random('Inspiration')
+  dig_random('Incubation', 'Inspiration')
 } elsif ($in =~ m/^beer\s+me\s+a\s+video$/i) {
   warn sprintf "[%d] note: videoing\n", getppid;
-  dig_random('Videos')
+  dig_random('Incubation', 'Videos')
 } elsif ($in =~ m/^beer\s+me\s+a\s+song$/i) {
   warn sprintf "[%d] note: musicing\n", getppid;
-  dig_random('Music')
+  dig_random('Incubation', 'Music')
 } elsif ($in =~ m/^(?:q|enqueue|queue)\s+(video|song|music|inspiration|idea|drama|comedy|restaurant)\s+(.*)$/i) {
   my $key = lc $1;
   my $item = $2;
@@ -107,7 +107,7 @@ if ($in =~ m/^inspire\s+me$/i) {
     $key = 'Restaurants'
   }
 
-  $tree->{$key}{"[_] $item"} = {};
+  $tree->{Incubation}{$key}{"[_] $item"} = {};
 
   update($tree);
 
