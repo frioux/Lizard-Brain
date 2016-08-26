@@ -11,6 +11,20 @@ configuration fields are as follows:
 
 OAuth 2 Access Token for reading from and wriitng to Dropbox.
 
+## `GOOGLE_USER`, `GOOGLE_PASSWORD`
+
+Username (`foo@gmail.com`) and password (prefereably an application password)
+for authentication to Google services.
+
+## `GMUSIC_PLAYLIST_ID`
+
+Playlist id to enqueue music to.  Find id by running something like:
+
+```python
+lists = api.get_all_user_playlist_contents()
+print("\n".join([x['id'] + " " + x['name'] for y in lists]))
+```
+
 ## `PUSHOVER_USER`
 
 The user token to send pushover messages to

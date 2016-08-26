@@ -1,0 +1,36 @@
+#!/usr/bin/env python2
+
+from gmusicapi import Mobileclient
+import os
+import sys
+
+query = sys.stdin.readline().strip()
+
+if not query.startswith("play "):
+    os.exit(1)
+
+query = query.replace("play ", "");
+
+selection = "song"
+
+for x in "album artist playlist song station video situation".split(" "):
+    if query.startswith(x + " "):
+        query = query.replace(x + " ", "");
+        selection = x;
+
+api = Mobileclient()
+logged_in = api.login(
+    os.getenv('GOOGLE_USER'),
+    os.getenv('GOOGLE_PASSWORD'),
+    Mobileclient.FROM_MAC_ADDRESS)
+
+results = (api.search(query, 1))[selection + '_hits']
+
+if len(results):
+    api.add_songs_to_playlist(
+        os.getenv('GMUSIC_PLAYLIST_ID'),
+        [x['track']['nid'] for x in results])
+    print("added {} to list".format(query))
+else:
+    print("no song found to play for {}!".format(query))
+    os.exit(2)
