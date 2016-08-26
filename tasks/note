@@ -116,7 +116,7 @@ if ($in =~ m/^inspire\s+me$/i) {
   my $item = $1;
   warn sprintf "[%d] note: q in $item\n", getppid;
 
-  $tree->{IN}{"[_] $item"} = {};
+  $tree->{IN}{"$item"} = {};
 
   update($tree);
 
