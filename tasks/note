@@ -11,6 +11,7 @@ use IO::All;
 use Tie::IxHash;
 use List::Util 'shuffle';
 
+open my $raw_stdout, '>&', \*STDOUT;
 binmode STDIN, 'encoding(UTF-8)';
 binmode STDOUT, 'encoding(UTF-8)';
 
@@ -125,6 +126,8 @@ if ($in =~ m/^inspire\s+me$/i) {
   update($tree);
 
   print 'Enqueued item!';
+} elsif ($in =~ m/^echo notes$/i) {
+  show($tree, 0, $raw_stdout)
 } else {
   exit 1
 }
