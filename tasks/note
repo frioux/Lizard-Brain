@@ -29,6 +29,7 @@ open $dropbox, '<', $ENV{LB_NOTES};
 while (<$dropbox>) {
   $_ = decode('UTF-8', $_);
   my ($depth, $msg) = m/^(\t*)(.+)$/;
+  next unless $msg;
 
   pop @stack while $#stack > length $depth;
   tie my %itree, 'Tie::IxHash';
@@ -41,13 +42,16 @@ sub show {
   $fh ||= \*STDOUT;
   $offset ||= 0;
 
+  my $i = 0;
   for my $key (keys %$hash) {
     my $out = "$key\n";
     $out =~ s/\[_\]\s*// if $simplify;
     my $str = ("\t" x $offset) . $out;
     $str = encode('UTF-8', $str);
+    print $fh "\n" if !$offset && $i;
     print $fh $str;
     show($hash->{$key}, $simplify, $fh, $offset + 1) if $hash->{$key} && %{ $hash->{$key} };
+    $i++
   }
 }
 
