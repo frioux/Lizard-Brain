@@ -138,7 +138,7 @@ sub notes {
           <head><meta charset="utf-8"></head>
           <body>
           <ol>' .
-            ( join "\n", map "<li>" . $self->_link($path, $_) . "</li>", keys %$tree) .
+            ( join "\n", map "<li>" . $self->_link($path, $_, $tree) . "</li>", keys %$tree) .
           '</ol>
           </body></html>'
         )
@@ -148,11 +148,13 @@ sub notes {
 }
 
 sub _link {
-  my ($self, $path, $link) = @_;
+  my ($self, $path, $link, $tree) = @_;
 
   my $prefix = "";
   $prefix = qq(<a href="$link">[ link ]</a> )
     if $link =~ m(^https?://);
+
+  return "$prefix$link" unless keys %{$tree->{$link}};
 
   my $q = join '&', map 'q=' . uri_escape_utf8($_), @$path, $link;
   return qq($prefix<a href="/notes?$q">$link</a>)
