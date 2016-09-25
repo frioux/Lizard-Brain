@@ -29,6 +29,11 @@ with Lizard Brain.
 Location of [VOTL](https://github.com/vimoutliner/vimoutliner) file used for
 inspiration etc.  Some location in dropbox (like `/foo/bar.otl`)
 
+## `LB_NOTES_PASS`
+
+The crypt formatted password that is for the scant www interface Lizard Brain
+has.  Should be a hash of `u$username:p$password`.
+
 ## `MY_CELL`
 
 The [E.164](https://http://en.wikipedia.org/wiki/E.164) cell that is authorized

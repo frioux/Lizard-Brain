@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+use autodie;
+
 package LizardBrain::WWW;
 use Web::Simple;
 use IO::Socket::IP;
@@ -12,6 +14,7 @@ use Digest::SHA qw(hmac_sha1_hex);
 use Plack::Request;
 use String::Compare::ConstantTime;
 use Encode qw(encode decode);
+use URI::Escape;
 
 die 'Set LB_PASS to a password hash'
   unless defined $ENV{LB_PASS};
@@ -84,10 +87,82 @@ sub github {
   ]
 }
 
+sub notes {
+  my ($self, $path, $env) = @_;
+
+  '' => sub {
+    my $pw = Authen::Passphrase->from_crypt($ENV{LB_NOTES_PASS});
+
+    Plack::Middleware::Auth::Basic->new(
+      authenticator => sub {
+        my ($username, $password, $env) = @_;
+
+        $pw->match("u$username:p$password");
+      },
+    ),
+  },
+
+  '' => sub {
+    require File::Dropbox;
+    require Tie::IxHash;
+
+    tie my %tree, 'Tie::IxHash';
+    my $tree = \%tree;
+    my @stack = ($tree);
+
+    my $dropbox = File::Dropbox->new(
+       access_token  => $ENV{DROPBOX_ACCESS_TOKEN},
+       root => 'dropbox',
+       oauth2 => 1,
+    );
+
+    open $dropbox, '<', $ENV{LB_NOTES};
+
+    while (<$dropbox>) {
+      $_ = decode('UTF-8', $_);
+      my ($depth, $msg) = m/^(\t*)(.+)$/;
+      next unless $msg;
+
+      pop @stack while $#stack > length $depth;
+      tie my %itree, 'Tie::IxHash';
+      push @stack, ( $stack[-1]{$msg} = \%itree );
+    }
+
+    $tree = $tree->{$_} for @$path;
+
+    [
+      200,
+      [ content_type => 'text/html; charset=utf-8' ],
+      [
+        encode('UTF-8', '<html>
+          <head><meta charset="utf-8"></head>
+          <body>
+          <ol>' .
+            ( join "\n", map "<li>" . $self->_link($path, $_) . "</li>", keys %$tree) .
+          '</ol>
+          </body></html>'
+        )
+      ]
+    ]
+  }
+}
+
+sub _link {
+  my ($self, $path, $link) = @_;
+
+  my $prefix = "";
+  $prefix = qq(<a href="$link">[ link ]</a> )
+    if $link =~ m(^https?://);
+
+  my $q = join '&', map 'q=' . uri_escape_utf8($_), @$path, $link;
+  return qq($prefix<a href="/notes?$q">$link</a>)
+}
+
 $|++;
 sub dispatch_request {
   'GET + /twilio + ?From=&Body=' => 'twilio',
   '/github' => 'github',
+  '/notes + ?@q~' => 'notes',
   '/ok' => sub {
     [ 200, [ 'Content-Type', 'text/plain' ], [ "All is well\n\n" . `git rev-parse HEAD` ] ],
   },
