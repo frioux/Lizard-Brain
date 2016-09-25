@@ -154,7 +154,11 @@ sub _link {
   $prefix = qq(<a href="$link">[ link ]</a> )
     if $link =~ m(^https?://);
 
-  return "$prefix$link" unless keys %{$tree->{$link}};
+  my @keys = keys %{$tree->{$link}};
+  return "$prefix" . qq(<a href="$keys[0]">$link</a>)
+    if @keys == 1 && $keys[0] =~ m(^https?://);
+
+  return "$prefix$link" unless @keys;
 
   my $q = join '&', map 'q=' . uri_escape_utf8($_), @$path, $link;
   return qq($prefix<a href="/notes?$q">$link</a>)
