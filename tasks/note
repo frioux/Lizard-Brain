@@ -112,7 +112,7 @@ if ($in =~ m/^inspire\s+me$/i) {
     $key = 'Restaurants'
   }
 
-  $tree->{Incubation}{$key}{"[_] $item"} = {};
+  $tree->{Incubation}{$key}{"$item"} = {};
 
   update($tree);
 

@@ -30,7 +30,7 @@ my $listener = AnyEvent::Twitter::Stream->new(
     ) or die "Cannot construct socket - $@";
 
     # TODO: bubble up non-zero exits somehow
-    my $str = "q song $1 " .
+    my $str = "q song [_] $1 " .
       sprintf "(from https://twitter.com/%s/status/%s)",
         $tweet->{user}{screen_name}, $tweet->{id_str};
     $str = encode('UTF-8', $str);
