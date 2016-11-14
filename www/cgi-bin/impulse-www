@@ -155,6 +155,16 @@ our $root;
 sub _link {
   my ($self, $path, $link, $tree) = @_;
 
+  if ($link =~ s(^bible://)()) {
+    my ($version) = $link =~ m/@(\w+)$/;
+    $link =~ s/@\w+$//;
+    $version ||= 'ESV';
+
+    $link = "https://www.biblegateway.com/passage/?version=$version&search=" . uri_escape($link);
+  }
+
+  $link =~ s(^fogbugz://)(https://ziprecruiter.fogbugz.com/f/cases/);
+
   my $prefix = "";
   $prefix = qq(<a href="$link">[ link ]</a> )
     if $link =~ m(^https?://);
