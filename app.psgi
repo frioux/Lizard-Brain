@@ -224,6 +224,12 @@ sub notes {
 
     open $dropbox, '<', $which;
 
+    return [
+      200,
+      [ content_type => 'text/plain; charset=utf-8' ],
+      [ <$dropbox> ]
+    ] if $path && ref $path eq 'HASH' && $path->{guts};
+
     while (<$dropbox>) {
       $_ = decode('UTF-8', $_);
       my ($depth, $msg) = m/^(\t*)(.+)$/;
@@ -289,6 +295,10 @@ $|++;
 sub dispatch_request {
   'GET + /twilio + ?From=&Body=' => 'twilio',
   '/github' => 'github',
+  '/notes + ?guts=' => sub {
+    $root = 'notes';
+    shift->notes({ guts => 1 }, $_[-1], $ENV{LB_NOTES})
+  },
   '/notes + ?@q~' => sub {
     $root = 'notes';
     shift->notes(@_, $ENV{LB_NOTES})
@@ -296,6 +306,10 @@ sub dispatch_request {
   '/reference + ?@q~' => sub {
     $root = 'reference';
     shift->notes(@_, $ENV{LB_REFERENCE})
+  },
+  '/reference + ?guts=' => sub {
+    $root = 'reference';
+    shift->notes({ guts => 1 }, $_[-1], $ENV{LB_REFERENCE})
   },
   '/ok' => sub {
     [ 200, [ 'Content-Type', 'text/plain' ], [ "All is well\n\n" . `git rev-parse HEAD` ] ],
