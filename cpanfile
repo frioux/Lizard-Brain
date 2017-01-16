@@ -1,4 +1,5 @@
 requires 'AnyEvent::Twitter::Stream';
+requires 'Authen::Passphrase';
 requires 'Data::GUID';
 requires 'DateTime::Format::Strptime';
 requires 'DateTime::Format::SQLite';
@@ -10,3 +11,4 @@ requires 'Net::Twitter';
 requires 'Process::Status';
 requires 'String::Compare::ConstantTime';
 requires 'Tie::IxHash';
+requires 'Web::Simple';
