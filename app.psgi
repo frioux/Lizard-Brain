@@ -15,6 +15,8 @@ use Plack::Request;
 use String::Compare::ConstantTime;
 use Encode qw(encode decode);
 use URI::Escape;
+use Tie::IxHash;
+use File::Dropbox;
 
 die 'Set LB_PASS to a password hash'
   unless defined $ENV{LB_PASS};
@@ -37,23 +39,123 @@ sub twilio {
     return [ 405, [ 'Content-type', 'text/plain' ], [ 'Not authorized yo' ] ]
       unless $from eq $ENV{MY_CELL};
 
-    my $sock = IO::Socket::IP->new(
-       PeerHost => '127.0.0.1',
-       PeerPort => 8000,
-       Type     => SOCK_STREAM,
-     ) or return [
-       500,
-       [ 'Content-type', 'text/plain' ],
-       [ "Cannot construct socket - $@" ]
-     ];
+    tie my %tree, 'Tie::IxHash';
+    my $tree = \%tree;
+    my @stack = ($tree);
 
-     # TODO: bubble up non-zero exits somehow
-     print $sock encode('UTF-8', "$body");
+    my $dropbox = $self->_dropbox;
 
-     shutdown $sock, 1;
+    open $dropbox, '<', $ENV{LB_NOTES};
 
-     local $/;
-     [ 200, [ 'Content-type', 'text/plain' ], [ <$sock> ] ]
+    while (<$dropbox>) {
+      $_ = decode('UTF-8', $_);
+      my ($depth, $msg) = m/^(\t*)(.+)$/;
+      next unless $msg;
+
+      pop @stack while $#stack > length $depth;
+      tie my %itree, 'Tie::IxHash';
+      push @stack, ( $stack[-1]{$msg} = \%itree );
+    }
+
+    my $show;
+    $show = sub {
+      my ($hash, $simplify, $fh, $offset) = @_;
+
+      $fh ||= \*STDOUT;
+      $offset ||= 0;
+
+      my $i = 0;
+      for my $key (keys %$hash) {
+        my $out = "$key\n";
+        $out =~ s/\[_\]\s*// if $simplify;
+        my $str = ("\t" x $offset) . $out;
+        $str = encode('UTF-8', $str);
+        print $fh "\n" if !$offset && $i;
+        print $fh $str;
+        $show->($hash->{$key}, $simplify, $fh, $offset + 1) if $hash->{$key} && %{ $hash->{$key} };
+        $i++
+      }
+    };
+
+    my $update = sub {
+      open $dropbox, '>', "$ENV{LB_NOTES}";
+      $show->(shift, 0, $dropbox);
+      close $dropbox;
+    };
+
+    my $dig_random = sub {
+      my @path = @_;
+
+      my $inner_tree = $tree;
+      $inner_tree = $inner_tree->{$_} for @path;
+
+      my ($choice) = shuffle(grep !m/\[X\]/, keys %$inner_tree);
+
+      $inner_tree->{$choice =~ s/\[_\]/[X]/r } =
+        delete $inner_tree->{$choice};
+
+      $update->($tree);
+
+      $show->({ $choice => $inner_tree->{$choice} }, 1);
+    };
+
+    chomp(my $in = $body);
+    $in =~ s/^\s*//;
+    $in =~ s/\s*$//;
+
+    if ($in =~ m/^inspire\s+me$/i) {
+      warn sprintf "[%d] note: inspiring\n", getppid;
+      $dig_random->('Incubation', 'Inspiration')
+    } elsif ($in =~ m/^beer\s+me\s+a\s+video$/i) {
+      warn sprintf "[%d] note: videoing\n", getppid;
+      $dig_random->('Incubation', 'Videos')
+    } elsif ($in =~ m/^beer\s+me\s+a\s+song$/i) {
+      warn sprintf "[%d] note: musicing\n", getppid;
+      $dig_random->('Incubation', 'Music')
+    } elsif ($in =~ m/^(?:q|enqueue|queue)\s+(video|song|music|inspiration|idea|drama|comedy|restaurant)\s+(.*)$/i) {
+      my $key = lc $1;
+      my $item = $2;
+      warn sprintf "[%d] note: q'ing $item\n", getppid;
+      if ($key eq 'video') {
+        $key = 'Videos'
+      } elsif ($key =~ m/^(?:song|music)$/) {
+        $key = 'Music'
+      } elsif ($key eq 'inspiration') {
+        $key = 'Inspiration'
+      } elsif ($key eq 'idea') {
+        $key = 'Ideas'
+      } elsif ($key eq 'drama') {
+        $key = 'Dramas'
+      } elsif ($key eq 'comedy') {
+        $key = 'Comedies'
+      } elsif ($key eq 'restaurant') {
+        $key = 'Restaurants'
+      }
+
+      $tree->{Incubation}{$key}{"$item"} = {};
+
+      $update->($tree);
+
+     return [ 200, [ 'Content-type', 'text/plain' ], [ "Enqueued Item!" ] ]
+    } elsif ($in =~ m/^(?:q|enqueue|queue)\s+in\s+(.*)$/i) {
+      my $item = $1;
+      warn sprintf "[%d] note: q in $item\n", getppid;
+
+      $tree->{IN}{"$item"} = {};
+
+      $update->($tree);
+
+     return [ 200, [ 'Content-type', 'text/plain' ], [ "Enqueued Item!" ] ]
+    } elsif ($in =~ m/^echo notes$/i) {
+      my $str = "";
+      open my $fh, '<', \$str;
+      $show->($tree, 0, $str);
+      return [ 200, [ 'Content-type', 'text/plain' ], [ $str ] ]
+    } else {
+      exit 1
+    }
+
+     [ 500, [ 'Content-type', 'text/plain' ], [ "fell through" ] ]
   },
 }
 
@@ -87,6 +189,14 @@ sub github {
   ]
 }
 
+sub _dropbox {
+  File::Dropbox->new(
+    access_token  => $ENV{DROPBOX_ACCESS_TOKEN},
+    root => 'dropbox',
+    oauth2 => 1,
+  )
+}
+
 sub notes {
   my ($self, $path, $env, $which) = @_;
 
@@ -110,11 +220,7 @@ sub notes {
     my $tree = \%tree;
     my @stack = ($tree);
 
-    my $dropbox = File::Dropbox->new(
-       access_token  => $ENV{DROPBOX_ACCESS_TOKEN},
-       root => 'dropbox',
-       oauth2 => 1,
-    );
+    my $dropbox = $self->_dropbox;
 
     open $dropbox, '<', $which;
 
