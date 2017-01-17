@@ -226,7 +226,7 @@ sub notes {
 
     return [
       200,
-      [ content_type => 'text/plain; charset=utf-8' ],
+      [ 'content-type' => 'text/plain;charset=utf-8', ],
       [ <$dropbox> ]
     ] if $path && ref $path eq 'HASH' && $path->{guts};
 
@@ -245,7 +245,7 @@ sub notes {
     my $title = "Lizard Brain: /" . join q(/), @$path;
     [
       200,
-      [ content_type => 'text/html; charset=utf-8' ],
+      [ 'content-type' => 'text/html; charset=utf-8' ],
       [
         encode('UTF-8', qq[<html>
           <head>
@@ -302,6 +302,90 @@ sub dispatch_request {
   '/notes + ?@q~' => sub {
     $root = 'notes';
     shift->notes(@_, $ENV{LB_NOTES})
+  },
+  '/js_notes' => sub {
+    [
+      200,
+      [ content_type => 'text/html; charset=utf-8' ],
+      [
+        encode('UTF-8', q[<html>
+          <head>
+            <meta charset="utf-8">
+            <title>Lizard Brain</title>
+            <script src="https://code.jquery.com/jquery-1.11.3.js"></script>
+            <script>
+              var tree;
+              $(function() {
+                $.ajax({
+                  url: "/notes?guts=1",
+                  success: function(x) {
+                    let lines = x.split(/\n/);
+                    tree = new Map();
+                    let stack = [tree];
+
+                    let re = /^(\t*)(.+)$/;
+                    lines.forEach(function(line) {
+                      let result = re[Symbol.match](line);
+
+                      if (!result) return;
+
+                      let depth = result[1];
+                      let msg   = result[2];
+
+                      if (!msg) return;
+
+                      while ( (stack.length-1) > depth.length ) {
+                        stack.pop()
+                      }
+                      let itree = new Map();
+                      stack[stack.length - 1].set(msg, itree);
+                      stack.push(itree);
+
+                    });
+
+                    hash = decodeURI(window.location.hash)
+                    hash = hash.replace(/^#/, '')
+                    hash = hash.split("☃").filter(function(x) x.length)
+
+                    renderTree(hash);
+                  },
+                  error: function(x) { console.log(x) }
+                })
+              });
+              window.onpopstate = window.onpushstate = function() {
+                  hash = decodeURI(window.location.hash)
+                  hash = hash.replace(/^#/, '')
+                  hash = hash.split("☃").filter(function(x) x.length)
+
+                  renderTree(hash);
+              };
+              function renderTree(path) {
+                let rtree = tree;
+                path.forEach(function(x) { rtree = rtree.get(x) });
+
+                var str = "<ol>"
+
+                let it = rtree.keys();
+                let x;
+                while (x = it.next().value) {
+                  i_path = []
+                  i_path.push.apply(i_path, path)
+                  i_path.push(x)
+                  str += "<li><a href='#" + encodeURI(i_path.join("☃")) + "'>" + x + "</a></li>";
+                }
+
+                str += "</ol>";
+
+                $('#list').html(str)
+              }
+            </script>
+          </head>
+          <body>
+          <div id="list"></div>
+          </body></html>
+      ])
+    ]
+  ]
   },
   '/reference + ?@q~' => sub {
     $root = 'reference';
