@@ -36,7 +36,7 @@ has.  Should be a hash of `u$username:p$password`.
 
 ## `MY_CELL`
 
-The [E.164](https://http://en.wikipedia.org/wiki/E.164) cell that is authorized
+The [E.164](https://en.wikipedia.org/wiki/E.164) cell that is authorized
 to interact with the Lizard Brain via Twilio.
 
 ## `LB_GH_SECRET`
